@@ -3,13 +3,16 @@ import pathlib
 
 
 class TreeSize():
-    tree_size = 0.0
+    size = 0.0
+    root_path = ""
 
-    #def __init__(self):
+    def __init__(self, root_path=None):
+        if root_path:
+            self.root_path = root_path
 
     def add_folder_size(self, size):
-        self.tree_size += size
-        return self.tree_size
+        self.size += size
+        return self.size
 
 
 class FilesFolders:
@@ -90,7 +93,7 @@ class Folder(FilesFolders):
             self.is_folder = False
             self.contained_files_size = 0
             contained_file_extensions = {}
-            self.tree_size = TreeSize()
+            self.tree_size = TreeSize(root_path=full_path_name)
             self.max_depth = max_depth
             if depth:
                 self.depth = depth
@@ -105,12 +108,12 @@ class Folder(FilesFolders):
             if os.path.isdir(full_path_name):
                 self.is_folder = True
                 self.folder_name = self.full_path_name.name
-                self.enumerate_content(max_depth=max_depth)
+                self.enumerate_content()
                 self.get_size()
             else:
                 print("Error - {} is not a directory".format(full_path_name))
 
-    def enumerate_content(self, max_depth=None):
+    def enumerate_content(self):
         file_count = 0
         folder_count = 0
         #print("max depth is {}".format(self.max_depth))
