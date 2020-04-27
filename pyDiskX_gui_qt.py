@@ -95,7 +95,8 @@ class Ui_MainWindow(object):
 
     ## my handler functions
     def get_tree_size_push_button_clicked(self):
-        self.folder_object = pyDiskX.Folder(full_path_name=self.folder_object.full_path_name)
+        if self.currently_folders_deep != 0:
+            self.folder_object = pyDiskX.Folder(full_path_name=self.folder_object.full_path_name)
         size = self.folder_object.tree_size.size
         self.treeSizeLabel.setText(str(round(size, 4)) + "MB")
 
