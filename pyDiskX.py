@@ -114,9 +114,10 @@ class Folder(FilesFolders):
         file_count = 0
         folder_count = 0
         #print("max depth is {}".format(self.max_depth))
-        if self.depth >= self.max_depth:
-            print("Maximum folder depth reached! {}".format(self.max_depth))
-            return -1
+        if self.max_depth:
+            if self.depth >= self.max_depth:
+                print("Maximum folder depth reached! {}".format(self.max_depth))
+                return -1
 
 
         for item in os.listdir(self.full_path_name):
