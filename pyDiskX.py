@@ -27,6 +27,7 @@ class FilesFolders:
 class File(FilesFolders):
     file_name = ""
     is_file = False
+    extension = ""
 
     def __init__(self, full_path_name=None):
         #print("File object created for {}".format(full_path_name))
@@ -34,15 +35,32 @@ class File(FilesFolders):
             self.set_full_path_name(full_path_name)
             if os.path.isfile(full_path_name):
                 self.is_file = True
-                self.file_name = self.full_path_name.name
+                self.extract_filename_from_path()
                 self.get_size()
+                self.get_extension()
             else:
                 print("Error - {} is not a valid file".format(full_path_name))
 
     def get_size(self):
         self.size = (os.path.getsize(self.full_path_name) / 1024) / 1024
+        return self.size
         #print("Got size of file {} - {}MB".format(self.full_path_name, self.size))
 
+    def get_extension(self):
+        self.file_name = str(self.file_name)
+        #print("Determining file type by extension for {}".format(self.file_name))
+        if self.file_name.rfind(".") == -1:
+            #print("Unknown extension")
+            self.extension = "UNKNOWN_EXT"
+        else:
+            self.extension = self.file_name[self.file_name.rfind(".") + 1:]
+            #print("Extension is type {}".format(self.extension))
+        return self.extension
+
+    def extract_filename_from_path(self):
+        sep_pos = str(self.full_path_name).rfind(os.sep)
+        self.file_name = str(self.full_path_name)[sep_pos+1:]
+        #print("Filename {} extracted from path {}".format(self.file_name, self.full_path_name))
 
 
 class Folder(FilesFolders):
@@ -52,21 +70,32 @@ class Folder(FilesFolders):
     contained_files = []
     is_folder = bool()
     contained_files_size = 0.0
+    contained_file_extensions_tree = {}
+    contained_file_extensions = {}
     tree_size = None
     parent_folder_object = None
+    max_depth = None
+    depth = 0
 
-    def __init__(self, parent=None, full_path_name=None):
+    def __init__(self, parent=None, full_path_name=None, max_depth=None, depth=None):
         #print("Folder object created for {}".format(full_path_name))
         if full_path_name != None:
             folder_name = ""
             self.folder_contents_list = []
             self.contained_folders = []
             self.contained_files = []
+            self.contained_file_extensions = {}
             self.id = 0
             self.size = 0
             self.is_folder = False
             self.contained_files_size = 0
+            contained_file_extensions = {}
             self.tree_size = TreeSize()
+            self.max_depth = max_depth
+            if depth:
+                self.depth = depth
+            else:
+                self.depth = 0
             if parent:
                 self.parent_folder_object=parent
             else:
@@ -76,14 +105,19 @@ class Folder(FilesFolders):
             if os.path.isdir(full_path_name):
                 self.is_folder = True
                 self.folder_name = self.full_path_name.name
-                self.enumerate_content()
+                self.enumerate_content(max_depth=max_depth)
                 self.get_size()
             else:
                 print("Error - {} is not a directory".format(full_path_name))
 
-    def enumerate_content(self):
+    def enumerate_content(self, max_depth=None):
         file_count = 0
         folder_count = 0
+        #print("max depth is {}".format(self.max_depth))
+        if self.depth >= self.max_depth:
+            print("Maximum folder depth reached! {}".format(self.max_depth))
+            return -1
+
 
         for item in os.listdir(self.full_path_name):
             self.folder_contents_list.append(item)
@@ -91,7 +125,9 @@ class Folder(FilesFolders):
             #print("Full path is {}".format(full_path))
 
             if os.path.isdir(os.path.abspath(full_path)):
-                folder = Folder(parent=self.parent_folder_object, full_path_name=full_path)
+                #print("depth is {}".format(self.depth))
+                folder = Folder(parent=self.parent_folder_object, full_path_name=full_path, depth=self.depth+1,
+                                max_depth=self.parent_folder_object.max_depth)
                 folder.set_id(folder_count)
                 folder_count = folder_count + 1
                 self.contained_folders.append(folder)
@@ -102,7 +138,15 @@ class Folder(FilesFolders):
                 self.contained_files_size += (file.size / 1024) / 1024
                 file_count = file_count + 1
                 self.contained_files.append(file)
-
+                if file.extension not in self.contained_file_extensions:
+                    self.contained_file_extensions[file.extension] = 1
+                    self.contained_file_extensions_tree[file.extension] = 1
+                    #print("added new extension to dict {}".format(file.extension))
+                else:
+                    self.contained_file_extensions[file.extension] += 1
+                    self.contained_file_extensions_tree[file.extension] += 1
+                    #print("found another file with an extension we've already recorded. {} now {}".format(
+                    #    file.extension, self.contained_file_extensions[file.extension]))
         #print("Contents enumerated for {} - {} Files - {} Folders".format(self.full_path_name, file_count, folder_count))
 
     def get_size(self):
@@ -115,21 +159,4 @@ class Folder(FilesFolders):
         print("Folder {} is {}MB".format(self.full_path_name, size))
         return size
 
-    '''def get_folder_tree_size(self, folder=None, first=True):
-        #global main_folder_tree_size
-        if folder is None:
-            folder = self
-        if first is True:
-            print("first run, setting var to starting folder size {}".format(self.size))
-            self.main_folder_tree_size = self.size
-        print(id(folder))
-        if folder.contained_folders:
-            for inner_folder in folder.contained_folders:
-                print("inner folder size {} for {}".format(inner_folder.size, inner_folder.full_path_name))
-                self.main_folder_tree_size += inner_folder.size
-                print("Running total = {}".format(self.main_folder_tree_size))
-                if inner_folder.contained_folders:
-                    for inner_inner_folder in inner_folder.contained_folders:
-                        inner_inner_folder.get_folder_tree_size(inner_inner_folder, first=False)
 
-        return self.main_folder_tree_size'''
