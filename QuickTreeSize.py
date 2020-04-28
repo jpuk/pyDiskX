@@ -2,10 +2,34 @@ from os import walk
 from os import path
 from os import sep
 
+
+class BaseList():
+    _list = []
+    def __init__(self):
+        self._list = []
+
+    def __add__(self, value):
+        if isinstance(value, BaseList):
+            ret = self._list + value._list
+        return ret
+
+    def __radd__(self, value):
+        if isinstance(value, BaseList):
+            ret = self._list + value._list
+        return ret
+
+    def append(self, value):
+        self._list.append(value)
+        return True
+
+    def get(self):
+        return self._list
+
+
 class QuickTreeSize():
     def __init__(self, folder_name):
-        self._folder_list = []
-        self._file_list = []
+        self.folder_list = BaseList()
+        self.file_list = BaseList()
         self._tree_size = 0.0
         if path.isdir(folder_name):
             self.enumerate_all_folders(folder_name)
@@ -14,17 +38,17 @@ class QuickTreeSize():
 
     def enumerate_all_folders(self, dirname_f):
         for (dirpath_o, dirnames_o, filenames_o) in walk(dirname_f):
-            self._folder_list.append(dirpath_o)
+            self.folder_list.append(dirpath_o)
             for filename in filenames_o:
                 full_path = "{}{}{}".format(dirpath_o, sep, filename)
                 #print(full_path)
-                self._file_list.append(full_path)
+                self.file_list.append(full_path)
                 try:
                     self._tree_size += path.getsize(full_path)
                 except:
                     print("Error getting size of {}".format(full_path))
             for dir_i in dirnames_o:
-                self._folder_list.append(dir_i)
+                self.folder_list.append(dir_i)
                 self.enumerate_all_folders(dirpath_o + sep + dir_i)
             break
 
@@ -39,34 +63,6 @@ class QuickTreeSize():
 
     def list_files(self):
         return self._file_list
-
-    def __add__(self, value):
-        if isinstance(value, tuple):
-            print("value {} {}".format(value[0], value[1]))
-        if isinstance(value, float):
-            ret = self._tree_size = self._tree_size + float(value)
-        if isinstance(value, int):
-            ret = self._tree_size = self._tree_size + float(value)
-        if isinstance(value, str):
-            ret = str(self._folder_list) + value
-        if isinstance(value, QuickTreeSize):
-            ret = str(self._folder_list) + str(value._folder_list)
-
-        return ret
-
-    def __radd__(self, value):
-        if isinstance(value, tuple):
-            print("value {} {}".format(value[0], value[1]))
-        if isinstance(value, float):
-            ret = self._tree_size = self._tree_size + float(value)
-        if isinstance(value, int):
-            ret = self._tree_size = self._tree_size + float(value)
-        if isinstance(value, str):
-            ret = str(self._folder_list) + value
-        if isinstance(value, QuickTreeSize):
-            ret = str(self._folder_list) + str(value._folder_list)
-
-        return ret
 
     def __sub__(self, value):
         ret = self._tree_size = self._tree_size - float(value)
