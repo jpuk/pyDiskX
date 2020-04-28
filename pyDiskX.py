@@ -10,14 +10,15 @@ def get_os():
     global _OS
     os_choice = {"nt": 0, "posix": 1}
     for o in os_choice:
+        print(o)
         if o == os.name:
             _OS = os_choice[o]
             print("OS is {} setting _OS to {}".format(str(os.name), _OS))
             return _OS
-        else:
-            print("Unknown OS, assuming unix-like. OS = {}".format(os.name))
-            _OS = 1
-            return -1
+
+    print("Unknown OS, assuming unix-like. OS = {}".format(os.name))
+    _OS = 1
+    return -1
 
 class TreeSize():
     size = 0.0
