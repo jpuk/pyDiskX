@@ -1,25 +1,31 @@
 from os import walk
 from os import path
-
+from os import sep
 
 class QuickTreeSize():
     def __init__(self, folder_name):
         self._folder_list = []
         self._file_list = []
         self._tree_size = 0.0
-        self.enumerate_all_folders(folder_name)
+        if path.isdir(folder_name):
+            self.enumerate_all_folders(folder_name)
+        else:
+            print("{} isn't a valid folder".format(folder_name))
 
     def enumerate_all_folders(self, dirname_f):
         for (dirpath_o, dirnames_o, filenames_o) in walk(dirname_f):
             self._folder_list.append(dirpath_o)
             for filename in filenames_o:
-                full_path = "{}\\{}".format(dirpath_o, filename)
+                full_path = "{}{}{}".format(dirpath_o, sep, filename)
                 #print(full_path)
                 self._file_list.append(full_path)
-                self._tree_size += path.getsize(full_path)
+                try:
+                    self._tree_size += path.getsize(full_path)
+                except:
+                    print("Error getting size of {}".format(full_path))
             for dir_i in dirnames_o:
                 self._folder_list.append(dir_i)
-                self.enumerate_all_folders(dirpath_o + "\\" + dir_i)
+                self.enumerate_all_folders(dirpath_o + sep + dir_i)
             break
 
     def size_in_MB(self):
@@ -28,10 +34,10 @@ class QuickTreeSize():
     def size_in_KB(self):
         return self._tree_size
 
-    def folder_list(self):
+    def list_folders(self):
         return self._folder_list
 
-    def file_list(self):
+    def list_files(self):
         return self._file_list
 
     def __add__(self, value):
