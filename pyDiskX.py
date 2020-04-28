@@ -1,6 +1,23 @@
 import os
 import pathlib
 
+_OS = int()
+
+def __init__():
+    get_os()
+
+def get_os():
+    global _OS
+    os_choice = {"nt": 0, "posix": 1}
+    for o in os_choice:
+        if o == os.name:
+            _OS = os_choice[o]
+            print("OS is {} setting _OS to {}".format(str(os.name), _OS))
+            return _OS
+        else:
+            print("Unknown OS, assuming unix-like. OS = {}".format(os.name))
+            _OS = 1
+            return -1
 
 class TreeSize():
     size = 0.0
@@ -50,7 +67,11 @@ class File(FilesFolders):
         #print("Got size of file {} - {}MB".format(self.full_path_name, self.size))
 
     def get_extension(self):
-        self.file_name = str(self.file_name)
+        if _OS == 0:
+            self.file_name = str(self.file_name).upper()
+        else:
+            self.file_name = str(self.file_name)
+
         #print("Determining file type by extension for {}".format(self.file_name))
         if self.file_name.rfind(".") == -1:
             #print("Unknown extension")
@@ -92,7 +113,7 @@ class Folder(FilesFolders):
             self.size = 0
             self.is_folder = False
             self.contained_files_size = 0
-            contained_file_extensions = {}
+            self.contained_file_extensions = {}
             self.tree_size = TreeSize(root_path=full_path_name)
             self.max_depth = max_depth
             if depth:
@@ -128,13 +149,16 @@ class Folder(FilesFolders):
             full_path = os.path.join(self.full_path_name, item)
             #print("Full path is {}".format(full_path))
 
-            if os.path.isdir(os.path.abspath(full_path)):
-                #print("depth is {}".format(self.depth))
-                folder = Folder(parent=self.parent_folder_object, full_path_name=full_path, depth=self.depth+1,
-                                max_depth=self.parent_folder_object.max_depth)
-                folder.set_id(folder_count)
-                folder_count = folder_count + 1
-                self.contained_folders.append(folder)
+            try:
+                if os.path.isdir(os.path.abspath(full_path)):
+                    #print("depth is {}".format(self.depth))
+                    folder = Folder(parent=self.parent_folder_object, full_path_name=full_path, depth=self.depth+1,
+                                    max_depth=self.parent_folder_object.max_depth)
+                    folder.set_id(folder_count)
+                    folder_count = folder_count + 1
+                    self.contained_folders.append(folder)
+            except:
+                print("Error listing folder!")
 
             if os.path.isfile(os.path.abspath(full_path)):
                 file = File(full_path)
@@ -164,3 +188,5 @@ class Folder(FilesFolders):
         return size
 
 
+# run init function when run as module
+__init__()
